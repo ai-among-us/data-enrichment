@@ -65,10 +65,6 @@ export const AgenticTableCell = memo(function AgenticTableCell({
                 setEditing(false);
               }
             }}
-            onBlur={() => {
-              setValue(value as string);
-              setEditing(false);
-            }}
             rightSection={
               <Flex mr='md'>
                 <ActionIcon
