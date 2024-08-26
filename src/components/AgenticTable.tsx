@@ -58,13 +58,24 @@ export const AgenticTable = () => {
     // Step 2. For each cell, run the query and update the data.
     // Performend asynchronously and in parallel.
     cellsToUpdate.map(async (cell: { target: string, enrichment_field: string }) => {
-      // Set all fields to a "Loading" state using a Sentinel value
+      // 2.0.0 Set all fields to a "Loading" state using a Sentinel value
       setTargetData(targetData.map((element) => {
         if (element.target === cell.target) {
           element.enrichment_fields[cell.enrichment_field] = AGENT_LOADING;
         }
         return element;
       }));
+
+      // 2.0.1 Get potential examples - i.e. data that exists in other columns, up to 5 examples
+      const examples = targetData.reduce((acc: string[], curr) => {
+        if (curr.target !== cell.target) {
+          const example = curr.enrichment_fields[cell.enrichment_field];
+          if (example !== undefined && example !== AGENT_LOADING && example !== AGENT_FAILED) {
+            acc.push(example);
+          }
+        }
+        return acc;
+      }, []).slice(0, 5);
 
       // 2.1 Create a new Thread
       console.log("Creating a new thread");
@@ -93,9 +104,10 @@ export const AgenticTable = () => {
           "assistant_id": "agent",
           "input": {
             "input_info": {
-              "target": cell.target,
+              [targetLabel]: cell.target,
             },
             "target": cell.enrichment_field,
+            "examples": examples
           }
         })
       });
@@ -335,7 +347,5 @@ export const AgenticTable = () => {
   );
 }
 
-
 // Feed in examples
-// Make "target" editable
 // Add multiple targets at once
