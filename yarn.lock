@@ -774,7 +774,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tabler/icons@npm:^3.13.0":
+"@tabler/icons-react@npm:^3.13.0":
+  version: 3.13.0
+  resolution: "@tabler/icons-react@npm:3.13.0"
+  dependencies:
+    "@tabler/icons": "npm:3.13.0"
+  peerDependencies:
+    react: ">= 16"
+  checksum: 10c0/275dbaac7024d8f81e522e8ed87c2e7d2c38167c6e6a8392127ae8c46c27831ccc6440d51a9e9dff1419b35b70bc9c785f27dac4e4b33a916e29a13fc49c5f7f
+  languageName: node
+  linkType: hard
+
+"@tabler/icons@npm:3.13.0, @tabler/icons@npm:^3.13.0":
   version: 3.13.0
   resolution: "@tabler/icons@npm:3.13.0"
   checksum: 10c0/89a6c99e7a66c6e473a738051d3918fa9665082c3e17f699cf4f1bb3cd4005b2c87c542263bcc7ad7c9ff5e9ed9c2f71217015493af1ce42a4b30b9389e92755
@@ -826,6 +837,15 @@ __metadata:
   version: 1.0.5
   resolution: "@types/estree@npm:1.0.5"
   checksum: 10c0/b3b0e334288ddb407c7b3357ca67dbee75ee22db242ca7c56fe27db4e1a31989cb8af48a84dd401deb787fe10cc6b2ab1ee82dc4783be87ededbe3d53c79c70d
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.5.0":
+  version: 22.5.0
+  resolution: "@types/node@npm:22.5.0"
+  dependencies:
+    undici-types: "npm:~6.19.2"
+  checksum: 10c0/45aa75c5e71645fac42dced4eff7f197c3fdfff6e8a9fdacd0eb2e748ff21ee70ffb73982f068a58e8d73b2c088a63613142c125236cdcf3c072ea97eada1559
   languageName: node
   linkType: hard
 
@@ -3157,6 +3177,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"undici-types@npm:~6.19.2":
+  version: 6.19.8
+  resolution: "undici-types@npm:6.19.8"
+  checksum: 10c0/078afa5990fba110f6824823ace86073b4638f1d5112ee26e790155f481f2a868cc3e0615505b6f4282bdf74a3d8caad715fd809e870c2bb0704e3ea6082f344
+  languageName: node
+  linkType: hard
+
 "unique-filename@npm:^3.0.0":
   version: 3.0.0
   resolution: "unique-filename@npm:3.0.0"
@@ -3278,6 +3305,8 @@ __metadata:
     "@mantine/core": "npm:7.12.1"
     "@mantine/hooks": "npm:7.12.1"
     "@tabler/icons": "npm:^3.13.0"
+    "@tabler/icons-react": "npm:^3.13.0"
+    "@types/node": "npm:^22.5.0"
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
     "@typescript-eslint/eslint-plugin": "npm:^7.13.1"
