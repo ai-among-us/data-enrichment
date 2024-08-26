@@ -1,5 +1,5 @@
 import { Flex, TextInput, Text, Table, Button, ActionIcon } from "@mantine/core";
-import { IconSquareRoundedMinus } from "@tabler/icons-react";
+import { IconCheck, IconSquareRoundedMinus, IconX } from "@tabler/icons-react";
 import { useState } from "react";
 import { AGENT_FAILED, AGENT_LOADING } from "../constants/AgentTableConstants";
 import { AgenticTableCell } from "./AgenticTableCell";
@@ -21,6 +21,9 @@ export const AgenticTable = () => {
 
   const [targets, setTargets] = useState<string[]>(["LangChain"]);
   const [newTarget, setNewTarget] = useState<string>("");
+  const [targetLabel, setTargetLabel] = useState<string>("Target");
+  const [newTargetLabel, setNewTargetLabel] = useState<string>(targetLabel);
+  const [editingTargetLabel, setEditingTargetLabel] = useState<boolean>(false);
 
   const [targetData, setTargetData] = useState<{ target: string, enrichment_fields: { [key: string]: string | undefined | typeof AGENT_LOADING | typeof AGENT_FAILED } }[]>([
     {
@@ -213,7 +216,7 @@ export const AgenticTable = () => {
             }]);
             setNewTarget("");
           }}>
-          Add Target
+          Add {targetLabel}
         </Button>
       </Flex>
       <Table
@@ -223,19 +226,58 @@ export const AgenticTable = () => {
       >
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Target</Table.Th>
+            <Table.Th>
+              {editingTargetLabel ? (
+                <TextInput
+                  value={newTargetLabel}
+                  onChange={(e) => {
+                    setNewTargetLabel(e.target.value);
+                  }}
+                  rightSection={
+                    <Flex mr='md'>
+                      <ActionIcon
+                        variant={"transparent"}
+                        size='xs'
+                        onClick={() => {
+                          setEditingTargetLabel(false);
+                          setNewTargetLabel(targetLabel)
+                        }}>
+                        <IconX />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant={"transparent"}
+                        size='xs'
+                        onClick={() => {
+                          setEditingTargetLabel(false);
+                          setTargetLabel(newTargetLabel);
+                        }}>
+                        <IconCheck />
+                      </ActionIcon>
+                    </Flex>
+                  }
+                />
+              ) : (
+                <Flex onClick={() => setEditingTargetLabel(true)} align='center' justify='center'>
+                  {targetLabel}
+                </Flex>
+              )}
+            </Table.Th>
             {
               columns.map((column) => (
                 <Table.Th key={column}>
-                  <Flex justify='center'>
+                  <Flex justify='center' align='center'>
                     {column}
-                    <ActionIcon onClick={() => {
-                      setColumns(columns.filter((element) => element !== column));
-                      setTargetData(targetData.map((element) => {
-                        delete element.enrichment_fields[column];
-                        return element;
-                      }));
-                    }}>
+                    <ActionIcon
+                      ml='4px'
+                      variant={"transparent"}
+                      size='xs'
+                      onClick={() => {
+                        setColumns(columns.filter((element) => element !== column));
+                        setTargetData(targetData.map((element) => {
+                          delete element.enrichment_fields[column];
+                          return element;
+                        }));
+                      }}>
                       <IconSquareRoundedMinus />
                     </ActionIcon>
                   </Flex>
@@ -249,9 +291,22 @@ export const AgenticTable = () => {
             targets.map((target) => (
               <Table.Tr key={target}>
                 <Table.Td>
-                  <Text fw={'bold'}>
-                    {target}
-                  </Text>
+                  <Flex align='center' justify='center'>
+                    <Text fw={'bold'}>
+                      {target}
+                    </Text>
+                    <ActionIcon
+                      ml='4px'
+                      variant={"transparent"}
+                      size='xs'
+                      onClick={() => {
+                        setTargets(targets.filter((element) => element !== target));
+                        setTargetData(targetData.filter((element) => element.target !== target));
+                      }}>
+                      <IconSquareRoundedMinus />
+                    </ActionIcon>
+                  </Flex>
+
                 </Table.Td>
                 {
                   columns.map((column) => (
@@ -276,12 +331,11 @@ export const AgenticTable = () => {
           }
         </Table.Tbody>
       </Table>
-    </Flex>
+    </Flex >
   );
 }
 
 
-
-
 // Feed in examples
+// Make "target" editable
 // Add multiple targets at once
