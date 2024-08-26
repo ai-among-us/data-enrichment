@@ -34,15 +34,9 @@ Here is the information you have about the company you are researching:
 
 {known_info}"""
 
-info_prompt = """You are doing research on companies. You are trying to figure out this information:
+info_prompt = """You are doing research. You are trying to figure out information. You just scraped the following website: {url}
 
-<info>
-{info}
-</info>
-
-You just scraped the following website: {url}
-
-Based on the website content below, jot down some notes about the website.
+Based on the website content below, jot down some notes summarizing the content on the website
 
 {content}"""
 
