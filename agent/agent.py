@@ -1,6 +1,8 @@
 from langchain_community.document_loaders import WebBaseLoader
-from langchain_core.pydantic_v1 import BaseModel, Field
-from typing import Literal
+from langchain_core.pydantic_v1 import BaseModel, Field, create_model
+from pydantic import create_model, Field
+
+from typing import Literal, Any
 from langchain_anthropic import ChatAnthropic
 import json
 from langchain_community.tools.tavily_search import TavilySearchResults
@@ -13,14 +15,6 @@ from langchain_core.messages import ToolMessage
 
 search_tool = TavilySearchResults(name="Search")
 raw_model = ChatAnthropic(model_name="claude-3-5-sonnet-20240620")
-
-class Info(BaseModel):
-    headquarters: str = Field(description='City in which this company is headquartered, should be in the form "San Francisco, USA"')
-    number_employees: Optional[int] = Field(description="number of full time employees")
-    investors: str = Field(description="Notable investors, should be a comma separated list")
-    capital_raised: str = Field(description="amount of money raised, should be like: `None`, `10k`, `35m`, `1b` etc")
-    ceo: str = Field(description="Name of CEO")
-    ceo_college: str = Field(description="Where did the CEO go to college")
 
 
 main_prompt = """You are doing research on companies. You are trying to figure out this information:
@@ -38,7 +32,7 @@ You have access to the following tools:
 
 Here is the information you have about the company you are researching:
 
-Company Name: {company_name}"""
+{known_info}"""
 
 info_prompt = """You are doing research on companies. You are trying to figure out this information:
 
@@ -68,28 +62,49 @@ def ScapeWebsite(url: str):
     return response
 
 class GraphState(MessagesState):
-    company_name: str
-    info: Info
+    input_info: dict
+    target: str
+    output: str
 
 class InputSchema(TypedDict):
-    company_name: str
+    input_info: dict
+    target: str
 
 class OutputSchema(TypedDict):
-    info: Info
+    output: Any
 
 class Good(BaseModel):
     reason: str
     good: bool
 
-model = raw_model.bind_tools([ScapeWebsite, search_tool, Info])
+
 def call_model(state):
-    p = main_prompt.format(info=Info.schema_json(), company_name=state['company_name'])
+
+    # Define field definitions
+    fields = {
+        state['target']: (str, ""),
+    }
+
+    # Create the model dynamically
+    Info = create_model("Info", **fields)
+
+    p = main_prompt.format(info=Info.schema_json(), known_info=state['input_info'])
     messages = [{"role": "human", "content": p}] + state['messages']
+    model = raw_model.bind_tools([ScapeWebsite, search_tool, Info])
     return {"messages": model.invoke(messages)}
 
 
 def call_checker(state):
-    p = main_prompt.format(info=Info.schema_json(), company_name=state['company_name'])
+
+    # Define field definitions
+    fields = {
+        state['target']: (str, ""),
+    }
+
+    # Create the model dynamically
+    Info = create_model("Info", **fields)
+
+    p = main_prompt.format(info=Info.schema_json(), known_info=state['input_info'])
     messages = [{"role": "human", "content": p}] + state['messages'][:-1] # get rid of the last one
     presumed_info = state['messages'][-1].tool_calls[0]['args']
     p1 = checker_prompt.format(presumed_info=presumed_info)
@@ -97,7 +112,7 @@ def call_checker(state):
     response = raw_model.with_structured_output(Good).invoke(messages)
     if response.good:
         try:
-            return {"info": Info(**state['messages'][-1].tool_calls[0]['args'])}
+            return {"output": state['messages'][-1].tool_calls[0]['args'][state['target']]}
         except Exception as e:
             return {"messages": [ToolMessage(tool_call_id=state['messages'][-1].tool_calls[0]['id'], content=f"Invalid response: {e}")]}
     else:
@@ -119,11 +134,11 @@ def route_after_agent(state) -> Literal["bad_agent", "call_checker", "tool_node"
 
 
 def route_after_checker(state) -> Literal[END, "call_model"]:
-    if 'info' in state:
+    if 'output' in state:
         return END
     return "call_model"
 
-graph = StateGraph(GraphState, input=InputSchema, output=InputSchema)
+graph = StateGraph(GraphState, input=InputSchema, output=OutputSchema)
 graph.add_node(call_model)
 graph.add_node(call_checker)
 graph.add_node(bad_agent)
