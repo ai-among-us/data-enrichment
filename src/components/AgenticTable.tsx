@@ -33,7 +33,7 @@ export const AgenticTable = () => {
         "company_founded": "2022",
         "company_industry": AGENT_FAILED,
         "company_size": "30",
-        "company_series": "A"
+        "company_series": "Series A"
       }
     },
   ]);
@@ -218,14 +218,19 @@ export const AgenticTable = () => {
         <Button
           disabled={newTarget.length === 0}
           onClick={() => {
-            setTargets([...targets, newTarget]);
-            setTargetData([...targetData, {
-              target: newTarget,
-              enrichment_fields: columns.reduce((acc: any, curr) => {
-                acc[curr] = undefined;
-                return acc;
-              }, {})
-            }]);
+            const newTargets = newTarget.split(",");
+            setTargets(targets => [...targets, ...newTargets]);
+
+            newTargets.forEach((target) => {
+              setTargetData(targetData => [...targetData, {
+                target: target,
+                enrichment_fields: columns.reduce((acc: any, curr) => {
+                  acc[curr] = undefined;
+                  return acc;
+                }, {})
+              }]);
+            });
+
             setNewTarget("");
           }}>
           Add {targetLabel}
@@ -346,6 +351,3 @@ export const AgenticTable = () => {
     </Flex >
   );
 }
-
-// Feed in examples
-// Add multiple targets at once
