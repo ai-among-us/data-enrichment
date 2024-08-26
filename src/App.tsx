@@ -1,7 +1,6 @@
 import "@mantine/core/styles.css";
 import { Flex, MantineProvider } from "@mantine/core";
 import { theme } from "./theme";
-import React from "react";
 import { AgenticTable } from "./components/AgenticTable";
 
 export default function App() {
@@ -10,6 +9,6 @@ export default function App() {
     <Flex m='5%'>
       <AgenticTable />
     </Flex>
-    
+
   </MantineProvider>;
 }
