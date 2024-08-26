@@ -3,7 +3,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field, create_model
 from pydantic import create_model, Field
 
 from typing import Literal, Any
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 import json
 from langchain_community.tools.tavily_search import TavilySearchResults
 from typing import TypedDict, Optional
@@ -14,7 +14,7 @@ from langchain_core.messages import ToolMessage
 
 
 search_tool = TavilySearchResults(name="Search")
-raw_model = ChatAnthropic(model_name="claude-3-5-sonnet-20240620")
+raw_model = ChatOpenAI(model_name="gpt-4o")
 
 
 main_prompt = """You are doing research on companies. You are trying to figure out this information:
@@ -23,6 +23,11 @@ main_prompt = """You are doing research on companies. You are trying to figure o
 {info}
 </info>
 
+Here is some examples of what this information looks like for other companies. Pay attention to the format of the values.
+
+<examples>
+{examples}
+</examples>
 
 You have access to the following tools:
 
@@ -40,10 +45,19 @@ Based on the website content below, jot down some notes summarizing the content 
 
 {content}"""
 
-checker_prompt = """I am thinking of calling the info tool with the info below. \
-Is this good? Give your reasoning as well. \
-You can encourage the Assistant to look at specific URLs if that seems relevant, or do more searches.
+checker_prompt = """I am thinking of calling the info tool with the info below. Is this good? It is good if (a) it is accurate, (b) the value is the same format as the values in the list below:
+
+<examples>
+{examples}
+</examples>
+
 If you don't think it is good, you should be very specific about what could be improved.
+
+Make sure to pass in both `reason` and the `good` boolean.
+
+Here is the information you are going to call the info tool with:
+
+Here is the information you are going to call the info tool with:
 
 {presumed_info}"""
 def ScapeWebsite(url: str):
@@ -51,18 +65,20 @@ def ScapeWebsite(url: str):
     loader = WebBaseLoader(url)
     docs = loader.load()
     website = docs[0].page_content
-    p = info_prompt.format(info=Info.schema_json(), url=url, content=website)
+    p = info_prompt.format(url=url, content=website)
     response = raw_model.invoke(p)
     return response
 
 class GraphState(MessagesState):
     input_info: dict
+    examples: list
     target: str
     output: str
 
 class InputSchema(TypedDict):
     input_info: dict
     target: str
+    examples: list
 
 class OutputSchema(TypedDict):
     output: Any
@@ -81,10 +97,10 @@ def call_model(state):
 
     # Create the model dynamically
     Info = create_model("Info", **fields)
-
-    p = main_prompt.format(info=Info.schema_json(), known_info=state['input_info'])
+    examples = state.get('examples', [])
+    p = main_prompt.format(info=Info.schema_json(), known_info=state['input_info'], examples=examples)
     messages = [{"role": "human", "content": p}] + state['messages']
-    model = raw_model.bind_tools([ScapeWebsite, search_tool, Info])
+    model = raw_model.bind_tools([ScapeWebsite, search_tool, Info], tool_choice="required", parallel_tool_calls=False)
     return {"messages": model.invoke(messages)}
 
 
@@ -97,11 +113,11 @@ def call_checker(state):
 
     # Create the model dynamically
     Info = create_model("Info", **fields)
-
-    p = main_prompt.format(info=Info.schema_json(), known_info=state['input_info'])
+    examples = state.get('examples', [])
+    p = main_prompt.format(info=Info.schema_json(), known_info=state['input_info'], examples=examples)
     messages = [{"role": "human", "content": p}] + state['messages'][:-1] # get rid of the last one
     presumed_info = state['messages'][-1].tool_calls[0]['args']
-    p1 = checker_prompt.format(presumed_info=presumed_info)
+    p1 = checker_prompt.format(presumed_info=presumed_info, examples=examples)
     messages.append({"role": "human", "content": p1})
     response = raw_model.with_structured_output(Good).invoke(messages)
     if response.good:
