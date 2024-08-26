@@ -1,0 +1,14 @@
+{
+  "dockerfile_lines": [],
+  "graphs": {
+    "agent": "./agent.py:graph"
+  },
+  "env": [
+    "ANTHROPIC_API_KEY",
+    "TAVILY_API_KEY"
+  ],
+  "python_version": "3.11",
+  "dependencies": [
+    "."
+  ]
+}
