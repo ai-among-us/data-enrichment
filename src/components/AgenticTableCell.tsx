@@ -1,5 +1,5 @@
-import { Flex, Loader, Table, TextInput } from "@mantine/core";
-import { IconFileX } from "@tabler/icons-react";
+import { ActionIcon, Flex, Loader, Table, TextInput } from "@mantine/core";
+import { IconCheck, IconFileX, IconX } from "@tabler/icons-react";
 import { memo, useState } from "react";
 import { AGENT_FAILED, AGENT_LOADING } from "../constants/AgentTableConstants";
 
@@ -44,7 +44,7 @@ export const AgenticTableCell = memo(function AgenticTableCell({
       }
       {value !== AGENT_FAILED && value !== AGENT_LOADING && !editing &&
         <Flex align='center' justify='center' onClick={() => setEditing(true)}>
-          {cellValue}
+          {value}
         </Flex>
       }
       {
@@ -69,6 +69,28 @@ export const AgenticTableCell = memo(function AgenticTableCell({
               setValue(value as string);
               setEditing(false);
             }}
+            rightSection={
+              <Flex mr='md'>
+                <ActionIcon
+                  variant={"transparent"}
+                  size='xs'
+                  onClick={() => {
+                    setCellValue(value as string);
+                    setEditing(false);
+                  }}>
+                  <IconX />
+                </ActionIcon>
+                <ActionIcon
+                  variant={"transparent"}
+                  size='xs'
+                  onClick={() => {
+                    setValue(cellValue);
+                    setEditing(false);
+                  }}>
+                  <IconCheck />
+                </ActionIcon>
+              </Flex>
+            }
           />
         </Flex>
       }
