@@ -1,5 +1,3 @@
-# Mantine Vite template
+# AgenticSpreadsheet
 
-Get started with the template by clicking `Use this template` button on the top of the page.
-
-[Documentation](https://mantine.dev/guides/vite/)
+Use `yarn run dev` to start a local instance of the app.
