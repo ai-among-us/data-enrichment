@@ -1,6 +1,6 @@
 import { ActionIcon, Flex, Loader, Table, TextInput } from "@mantine/core";
 import { IconCheck, IconFileX, IconX } from "@tabler/icons-react";
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { AGENT_FAILED, AGENT_LOADING } from "../constants/AgentTableConstants";
 
 /**
@@ -28,6 +28,10 @@ export const AgenticTableCell = memo(function AgenticTableCell({
 
   const [editing, setEditing] = useState<boolean>(false);
   const [cellValue, setCellValue] = useState<string>(value as string);
+
+  useEffect(() => {
+    setCellValue(value as string);
+  }, [value]);
 
   return (
     <Table.Td key={`${target}-${column}`}>
